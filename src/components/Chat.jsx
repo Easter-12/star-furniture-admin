@@ -56,10 +56,14 @@ function Chat() {
 
     const fetchMessages = async () => {
       setLoadingMessages(true);
+      // --- THIS IS THE CORRECTED QUERY ---
       const { data, error } = await supabase
         .from('messages')
         .select('*')
-        .or(`(sender_id.eq.${selectedUser.user_id},receiver_id.eq.${ADMIN_USER_ID}),(sender_id.eq.${ADMIN_USER_ID},receiver_id.eq.${selectedUser.user_id})`)
+        .or(
+          `and(sender_id.eq.${selectedUser.user_id},receiver_id.eq.${ADMIN_USER_ID}),` +
+          `and(sender_id.eq.${ADMIN_USER_ID},receiver_id.eq.${selectedUser.user_id})`
+        )
         .order('created_at', { ascending: true });
 
       if (error) {
@@ -76,7 +80,6 @@ function Chat() {
     const subscription = supabase
       .channel(`messages-${selectedUser.user_id}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
-        // Check if the new message belongs to the current conversation
         const newMessage = payload.new;
         if ((newMessage.sender_id === selectedUser.user_id && newMessage.receiver_id === ADMIN_USER_ID) ||
             (newMessage.sender_id === ADMIN_USER_ID && newMessage.receiver_id === selectedUser.user_id)) {
@@ -105,7 +108,7 @@ function Chat() {
     if (error) {
       alert('Error sending message: ' + error.message);
     } else {
-      setNewMessage(''); // Clear the input field
+      setNewMessage('');
     }
   };
 
