@@ -1,46 +1,19 @@
-import React, { useState, useEffect } from 'react';
-import ProductForm from './components/ProductForm';
-import ProductList from './components/ProductList';
+import React, { useState } from 'react';
+import ProductView from './components/ProductView';
 import UserList from './components/UserList';
-import Chat from './components/Chat'; // Import the new Chat component
-import { supabase } from './supabaseClient';
-import './app.css';
+import Chat from './components/Chat';
+import './App.css'; // This path is now correct after deleting the duplicate file
 
 function App() {
   const [view, setView] = useState('products'); // 'products', 'users', or 'chat'
-  const [products, setProducts] = useState([]);
-  const [productToEdit, setProductToEdit] = useState(null);
-
-  const getProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setProducts(data);
-    } catch (error) {
-      alert('Error loading products: ' + error.message);
-    }
-  };
-
-  useEffect(() => {
-    if (view === 'products') {
-      getProducts();
-    }
-  }, [view]);
-
-  const handleSuccess = () => {
-    setProductToEdit(null);
-    getProducts();
-  };
 
   return (
-    <div className="app-container">
-      <header>
-        <h1>Star Furniture Admin Panel</h1>
-        <nav>
+    <div className="admin-layout">
+      <aside className="sidebar">
+        <div className="sidebar-header">
+          <h2>Star Admin</h2>
+        </div>
+        <nav className="sidebar-nav">
           <button onClick={() => setView('products')} className={view === 'products' ? 'active' : ''}>
             Products
           </button>
@@ -51,31 +24,12 @@ function App() {
             Chat
           </button>
         </nav>
-      </header>
-      <main>
-        {view === 'products' && (
-          <div>
-            <ProductForm 
-              productToEdit={productToEdit} 
-              onSuccess={handleSuccess} 
-            />
-            <hr />
-            <ProductList 
-              products={products} 
-              onEdit={setProductToEdit}
-              onDelete={getProducts}
-            />
-          </div>
-        )}
+      </aside>
 
-        {view === 'users' && (
-          <UserList />
-        )}
-
-        {view === 'chat' && (
-          // Use the real Chat component now
-          <Chat />
-        )}
+      <main className="main-content">
+        {view === 'products' && <ProductView />}
+        {view === 'users' && <UserList />}
+        {view === 'chat' && <Chat />}
       </main>
     </div>
   );
